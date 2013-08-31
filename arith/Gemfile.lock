@@ -1,0 +1,12 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    pattern-match (0.5.0)
+    racc (1.4.9)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  pattern-match
+  racc (>= 1.4.9)
