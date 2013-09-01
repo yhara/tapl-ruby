@@ -82,7 +82,7 @@ module Arith
 end
 
 if $0 == __FILE__
-  p Arith.new.eval([:If, [:IsZero, [:Succ, [:Zero]]],
-                         [:Zero],
-                         [:Succ, [:Zero]]])
+  p Arith::Evaluator.new.eval([:If, [:IsZero, [:Succ, [:Zero]]],
+                                [:Zero],
+                                [:Succ, [:Zero]]])
 end
