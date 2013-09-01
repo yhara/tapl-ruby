@@ -59,9 +59,7 @@ module Arith
           [:True]
         }
 
-        # Note: this does not work (k-tsj/pattern-match#3)
-        # with(_[:IsZero, [:Succ, nv1]], guard{ numeric_val?(nv1)}) {
-        with(_[:IsZero, t1], guard{ t1[0] == :Succ && numeric_val?(t1[1]) }) {
+        with(_[:IsZero, _[:Succ, nv1]], guard{ numeric_val?(nv1)}) {
           [:False]
         }
         
