@@ -49,7 +49,7 @@ module Arith
         with(_[:Pred, [:Zero]]) {
           [:Zero]
         }
-        with(_[:Pred, [:Succ, nv1]], guard{ numeric_val?(nv1)}) {
+        with(_[:Pred, _[:Succ, nv1]], guard{ numeric_val?(nv1)}) {
           nv1
         }
         with(_[:Pred, t1]) {
