@@ -43,8 +43,6 @@ end
 ---- header
 
 require 'strscan'
-require_relative 'arith.rb'
-#require 'activesupport/core_ext/string/inflections'
 
 ---- inner
 
@@ -115,16 +113,3 @@ require_relative 'arith.rb'
     end
     yield [false, '$']   # is optional from Racc 1.3.7
   end
-
----- footer
-
-if $0 == __FILE__
-  src = "if iszero 0 then 1 else 0"
-  puts "-- source"
-  puts src
-  puts "-- parsed"
-  ast = Arith::Parser.new.parse(src)
-  p ast
-  puts "-- evaluated"
-  p Arith::Evaluator.new.eval(ast)
-end

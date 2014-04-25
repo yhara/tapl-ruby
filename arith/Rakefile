@@ -1,9 +1,0 @@
-desc "Build parser.rb"
-task :build do
-  sh "bundle exec racc -o parser.rb parser.y"
-end
-
-desc "Run program"
-task :run => :build do
-  sh "ruby parser.rb"
-end
