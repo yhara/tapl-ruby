@@ -1,4 +1,4 @@
-class Arith::Parser
+class Tapl::Parser
   options no_result_var
 rule
   toplevel : Term { val[0] }

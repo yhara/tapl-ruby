@@ -1,14 +1,12 @@
 #!/usr/bin/env ruby
 Dir.chdir(__dir__)
 system "bundle exec racc -o parser.rb parser.y"
-require './parser.rb'
-require './arith.rb'
+require './tapl.rb'
 
+src = <<EOD
+if iszero 0 then 1 else 0
+EOD
 
-#p Arith::Evaluator.new.eval([:If, [:IsZero, [:Succ, [:Zero]]],
-#                              [:Zero],
-#                              [:Succ, [:Zero]]])
-src = "if iszero 0 then 1 else 0"
 puts <<EOD
 Source:
 --
@@ -17,11 +15,11 @@ Source:
 
 Ast:
 --
-#{ast = Arith::Parser.new.parse(src)}
+#{ast = Tapl::Parser.new.parse(src)}
 --
 
 Result:
 --
-#{Arith::Evaluator.new.eval(ast)}
+#{Tapl::Evaluator.new.eval(ast)}
 --
 EOD

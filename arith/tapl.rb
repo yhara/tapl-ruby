@@ -1,4 +1,5 @@
 require 'pattern-match'
+require_relative 'parser.rb'
 
 =begin
 Terms:
@@ -11,7 +12,7 @@ Terms:
   [:IsZero, t1]
 =end
 
-module Arith
+module Tapl
   class Evaluator
     class NoRuleApplies < StandardError; end
 
