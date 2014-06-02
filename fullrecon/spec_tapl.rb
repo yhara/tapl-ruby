@@ -3,6 +3,42 @@ require_relative 'tapl'
 
 module Tapl
   describe Typer do
+    describe "#recon" do
+      before(:all) do
+        @typer = Typer.new
+        @recon = ->(t) { @typer.recon(nil, t) }
+      end
+
+      it "const" do
+        expect(@recon.([:Zero])).to eq([Type::TY_NAT, []])
+        expect(@recon.([:True])).to eq([Type::TY_BOOL, []])
+        expect(@recon.([:False])).to eq([Type::TY_BOOL, []])
+      end
+
+      it "builtin" do
+        expect(@recon.([:Succ, [:Zero]])).to eq(
+          [Type::TY_NAT, [Type::TY_NAT, Type::TY_NAT]]
+        )
+        expect(@recon.([:Pred, [:Zero]])).to eq(
+          [Type::TY_NAT, [Type::TY_NAT, Type::TY_NAT]]
+        )
+        expect(@recon.([:IsZero, [:Zero]])).to eq(
+          [Type::TY_NAT, [Type::TY_NAT, Type::TY_NAT]]
+        )
+      end
+
+      it "if" do
+        term = [:If, [:True], [:Zero], [:False]]
+        expect(@recon.(term)).to eq(
+          [Type::TY_BOOL, [
+            [Type::TY_BOOL, Type::TY_BOOL],
+            [Type::TY_NAT, Type::TY_BOOL] # Thus this program is wrong! :-)
+          ]]
+        )
+
+      end
+    end
+
     describe "#unify" do
       before(:all) do
         @typer = Typer.new

@@ -115,20 +115,43 @@ module Tapl
   class Typer
     include Type
 
-    def recon(ctx, nextuvar, t)
+    # Return [type, constr]
+    def recon(ctx, t)
       match(t) {
         with(_[:Var, i, _])
         with(_[:Abs, x, t1, t2])
         with(_[:Abs, x, nil, t2])
         with(_[:App, t1, t2])
         with(_[:Let, x, t1, t2])
-        with(_[:Zero])
-        with(_[:Succ, t1])
-        with(_[:Pred, t1])
-        with(_[:IsZero, t1])
-        with(_[:True])
-        with(_[:False])
-        with(_[:If, t1, t2, t3])
+        with(_[:Zero]) {
+          [TY_NAT, []]
+        }
+        with(_[:Succ, t1]) {
+          ty1, constr1 = recon(ctx, t1) 
+          [TY_NAT, [ty1, TY_NAT]+constr1]
+        }
+        with(_[:Pred, t1]) {
+          ty1, constr1 = recon(ctx, t1) 
+          [TY_NAT, [ty1, TY_NAT]+constr1]
+        }
+        with(_[:IsZero, t1]) {
+          ty1, constr1 = recon(ctx, t1) 
+          [TY_NAT, [ty1, TY_NAT]+constr1]
+        }
+        with(_[:True]) {
+          [TY_BOOL, []]
+        }
+        with(_[:False]) {
+          [TY_BOOL, []]
+        }
+        with(_[:If, t1, t2, t3]) {
+          ty1, constr1 = recon(ctx, t1)
+          ty2, constr2 = recon(ctx, t2)
+          ty3, constr3 = recon(ctx, t3)
+          newconstr = [[ty1, TY_BOOL], [ty2, ty3]]
+          [ty3, newconstr + constr1 + constr2 + constr3]
+        }
+        with(_) { raise "no match" }
       }
     end
 
