@@ -47,12 +47,23 @@ module Tapl
         end
 
         it "with type annotation" do
+          # Bool -> Nat
           term = [:Abs, "x", Type::TY_BOOL, [:Zero]]
           expect(@recon.(term)).to eq(
             [Type::TyArr.new(Type::TY_BOOL, Type::TY_NAT),
              []]
           )
         end
+      end
+
+      it "variable reference" do
+        # Bool -> Bool
+        term = [:Abs, "x", Type::TY_BOOL, [:Var, 0]]
+        expect(@recon.(term)).to eq(
+          [Type::TyArr.new(Type::TY_BOOL, Type::TY_BOOL),
+           []]
+        )
+
       end
     end
 

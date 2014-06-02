@@ -113,16 +113,21 @@ module Tapl
   end
 
   class Context
-    def initialize
-      @list = []
+    def initialize(list=[])
+      @list = list
     end
 
     def add_binding(str, bind)  # bind: Type(=VarBind) || :NameBind
-      @list.unshift([str, bind])
+      Context.new([[str, bind]] + @list)
     end
 
     def add_name(str)
       add_binding(str, :NameBind)
+    end
+
+    def get(i)
+      raise "invalid varref" if i >= @list.length
+      @list[i][1]
     end
   end
 
@@ -132,7 +137,11 @@ module Tapl
     # Return [type, constr]
     def recon(ctx, t)
       match(t) {
-        with(_[:Var, i, _])
+        # Variable reference
+        with(_[:Var, i]) {
+          ty = ctx.get(i)
+          [ty, []]
+        }
         # Function abstraction without type annotation
         with(_[:Abs, name, nil, t2]) {
           tyx = TyId.new(gen_uvar)
