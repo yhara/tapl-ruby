@@ -92,11 +92,17 @@ module Tapl
       def initialize(id)
         @id = id
       end
+      def ==(other)
+        other.is_a?(TyId) && other.id == self.id
+      end
       attr_accessor :id
     end
     class TyArr < Base
       def initialize(t1, t2)
         @t1, @t2 = t1, t2
+      end
+      def ==(other)
+        other.is_a?(TyArr) && other.t1 == self.t1 && other.t2 == self.t2
       end
       attr_accessor :t1, :t2
     end
@@ -132,12 +138,12 @@ module Tapl
         match(first) {
           with(nil) { [] }
           with(_[left, right & TyId]) {
-            if left.is_a?(TyId) && left.id == right.id
+            if left == right
               u.(rest)
             elsif occurs_in?(right.id, left)
               raise "#{msg}: circular constraints"
             else
-              u.(substinconstr(right.id, left, rest)) + 
+              u.(subst_constr(right.id, left, rest)) + 
                 [[TyId.new(right.id), left]]
             end
           }
@@ -146,8 +152,8 @@ module Tapl
           }
           with(_[TyNat, TyNat]) { u.(rest) }
           with(_[TyBool, TyBool]) { u.(rest) }
-          with(_[a1 & TyArr, a2 & TyArr]) {
-            u.( [[a1.t1, a2.t1], [a1.t2, a2.t2], *rest] )
+          with(_[fun1 & TyArr, fun2 & TyArr]) {
+            u.( [[fun1.t1, fun2.t1], [fun1.t2, fun2.t2], *rest] )
           }
           with(_) {
             raise "Unsolvable constraints"
@@ -156,6 +162,37 @@ module Tapl
       }
 
       u.(constr)
+    end
+
+    private
+
+    def occurs_in?(name, type)
+      match(type) {
+        with(TyArr) { occurs_in?(name, type.t1) ||
+                      occurs_in?(name, type.t2) }
+        with(TyNat) { false }
+        with(TyBool) { false }
+        with(TyId) { name == type.id }
+      }
+    end
+
+    def subst_constr(name, type, constr)
+      constr.map{|(t1, t2)|
+        [subst_ty(name, type, t1),
+         subst_ty(name, type, t2)]
+      }
+    end
+
+    def subst_ty(name, type, substee_type)
+      match(substee_type) {
+        with(TyArr) { 
+          TyArr.new(subst_ty(substee_type.t1),
+                    subst_ty(substee_type.t2))
+        }
+        with(TyNat) { substee_type }
+        with(TyBool) { substee_type }
+        with(TyId) { substee_type.id == name ? type : substee_type }
+      }
     end
 
   end
