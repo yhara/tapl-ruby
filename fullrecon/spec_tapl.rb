@@ -6,7 +6,7 @@ module Tapl
     describe "#recon" do
       before(:all) do
         @typer = Typer.new
-        @recon = ->(t) { @typer.recon(nil, t) }
+        @recon = ->(t) { @typer.recon(Context.new, t) }
       end
 
       it "const" do
@@ -35,7 +35,24 @@ module Tapl
             [Type::TY_NAT, Type::TY_BOOL] # Thus this program is wrong! :-)
           ]]
         )
+      end
 
+      context "function abstraction" do
+        it "without type annotation" do
+          term = [:Abs, "x", nil, [:Zero]]
+          expect(@recon.(term)).to eq(
+            [Type::TyArr.new(Type::TyId.new("?1"), Type::TY_NAT),
+             []]
+          )
+        end
+
+        it "with type annotation" do
+          term = [:Abs, "x", Type::TY_BOOL, [:Zero]]
+          expect(@recon.(term)).to eq(
+            [Type::TyArr.new(Type::TY_BOOL, Type::TY_NAT),
+             []]
+          )
+        end
       end
     end
 

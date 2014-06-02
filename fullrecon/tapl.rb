@@ -112,6 +112,20 @@ module Tapl
     TY_NAT = TyNat.new
   end
 
+  class Context
+    def initialize
+      @list = []
+    end
+
+    def add_binding(str, bind)  # bind: Type(=VarBind) || :NameBind
+      @list.unshift([str, bind])
+    end
+
+    def add_name(str)
+      add_binding(str, :NameBind)
+    end
+  end
+
   class Typer
     include Type
 
@@ -119,8 +133,19 @@ module Tapl
     def recon(ctx, t)
       match(t) {
         with(_[:Var, i, _])
-        with(_[:Abs, x, t1, t2])
-        with(_[:Abs, x, nil, t2])
+        # Function abstraction without type annotation
+        with(_[:Abs, name, nil, t2]) {
+          tyx = TyId.new(gen_uvar)
+          ctx2 = ctx.add_binding(name, tyx)
+          ty2, constr2 = recon(ctx2, t2)
+          [TyArr.new(tyx, ty2), constr2]
+        }
+        # Function abstraction with type annotation
+        with(_[:Abs, name, tyx, t2]) {
+          ctx2 = ctx.add_binding(name, tyx)
+          ty2, constr2 = recon(ctx2, t2)
+          [TyArr.new(tyx, ty2), constr2]
+        }
         with(_[:App, t1, t2])
         with(_[:Let, x, t1, t2])
         with(_[:Zero]) {
@@ -154,6 +179,13 @@ module Tapl
         with(_) { raise "no match" }
       }
     end
+
+    def gen_uvar
+      @last_uvar ||= 0
+      @last_uvar += 1
+      "?#{@last_uvar}"
+    end
+    private :gen_uvar
 
     def unify(fi, msg, constr)
       u = ->(constr) {
