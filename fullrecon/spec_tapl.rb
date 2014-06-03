@@ -4,7 +4,7 @@ require_relative 'tapl'
 module Tapl
   describe Typer do
     describe "#recon" do
-      before(:all) do
+      before do
         @typer = Typer.new
         @recon = ->(t) { @typer.recon(Context.new, t) }
       end
@@ -63,7 +63,19 @@ module Tapl
           [Type::TyArr.new(Type::TY_BOOL, Type::TY_BOOL),
            []]
         )
+      end
 
+      it "function application" do
+        term = [:App,
+          [:Abs, "x", Type::TY_BOOL, [:Var, 0]], # Bool -> Bool
+          [:Zero]                                # invalid argument (Nat)
+        ]
+        expect(@recon.(term)).to eq(
+          [Type::TyId.new("?1"), [
+            [Type::TyArr.new(Type::TY_BOOL, Type::TY_BOOL),
+             Type::TyArr.new(Type::TY_NAT, Type::TyId.new("?1"))]
+          ]]
+        )
       end
     end
 

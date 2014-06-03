@@ -155,7 +155,14 @@ module Tapl
           ty2, constr2 = recon(ctx2, t2)
           [TyArr.new(tyx, ty2), constr2]
         }
-        with(_[:App, t1, t2])
+        # Function application (function call)
+        with(_[:App, t1, t2]) {
+          ty1, constr1 = recon(ctx, t1)
+          ty2, constr2 = recon(ctx, t2)
+          tyx = TyId.new(gen_uvar)
+          newconstr = [[ty1, TyArr.new(ty2, tyx)]]
+          [tyx, newconstr + constr1 + constr2]
+        }
         with(_[:Let, x, t1, t2])
         with(_[:Zero]) {
           [TY_NAT, []]
