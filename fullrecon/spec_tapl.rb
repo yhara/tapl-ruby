@@ -58,7 +58,7 @@ module Tapl
 
       it "variable reference" do
         # Bool -> Bool
-        term = [:Abs, "x", Type::TY_BOOL, [:Var, 0]]
+        term = [:Abs, "x", Type::TY_BOOL, [:Var, 0, 99]]
         expect(@recon.(term)).to eq(
           [Type::TyArr.new(Type::TY_BOOL, Type::TY_BOOL),
            []]
@@ -67,7 +67,7 @@ module Tapl
 
       it "function application" do
         term = [:App,
-          [:Abs, "x", Type::TY_BOOL, [:Var, 0]], # Bool -> Bool
+          [:Abs, "x", Type::TY_BOOL, [:Var, 0, 99]], # Bool -> Bool
           [:Zero]                                # invalid argument (Nat)
         ]
         expect(@recon.(term)).to eq(
@@ -76,6 +76,25 @@ module Tapl
              Type::TyArr.new(Type::TY_NAT, Type::TyId.new("?1"))]
           ]]
         )
+      end
+
+      context "let" do
+        it "let with constant" do
+          term = [:Let, "n", [:Zero], [:True]]
+          expect(@recon.(term)).to eq(
+            [Type::TY_BOOL, []]
+          )
+        end
+
+        it "let with abs" do
+          term = [:Let, "f",
+            [:Abs, "x", nil, [:Var, 0, 99]],
+            [:Var, 0, 99]]
+          expect(@recon.(term)).to eq(
+            [Type::TyArr.new(Type::TyId.new("?1"), Type::TyId.new("?1")),
+              []]
+          )
+        end
       end
     end
 

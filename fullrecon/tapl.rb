@@ -70,7 +70,7 @@ module Tapl
     def recon(ctx, t)
       match(t) {
         # Variable reference
-        with(_[:Var, i]) {
+        with(_[:Var, i, _]) {
           ty = ctx.get(i)
           [ty, []]
         }
@@ -95,7 +95,16 @@ module Tapl
           newconstr = [[ty1, TyArr.new(ty2, tyx)]]
           [tyx, newconstr + constr1 + constr2]
         }
-        with(_[:Let, x, t1, t2])
+        with(_[:Let, x, t1, t2]) {
+          if value?(t1)
+            recon(ctx, termSubstTop(t1, t2))
+          else
+            ty1, constr1 = recon(ctx, t1)
+            ctx1 = ctx.add_binding(x, ty1)
+            ty2, constr2 = recon(ctx1, t2)
+            [ty2, constr1 + constr2]
+          end
+        }
         with(_[:Zero]) {
           [TY_NAT, []]
         }
@@ -128,12 +137,69 @@ module Tapl
       }
     end
 
+    def numeric?(t)
+      match(t) {
+        with(_[:Zero]) { true }
+        with(_[:Succ, t1]) { numeric?(t) }
+        with(_) { false }
+      }
+    end
+    private :numeric?
+
+    def value?(t)
+      match(t) {
+        with(_[:True]) { true }
+        with(_[:False]) { true }
+        with(_[t1], guard{ numeric?(t1) }) { true }
+        with(_[:Abs, _, _, _]) { true }
+        with(_) { false }
+      }
+    end
+    private :value?
+
     def gen_uvar
       @last_uvar ||= 0
       @last_uvar += 1
       "?#{@last_uvar}"
     end
     private :gen_uvar
+
+    def termSubstTop(s, t)
+      termShift(-1, termSubst(0, termShift(1, s), t))
+    end
+    def termSubst(j, s, t)
+      tmmap(j, t){|j, x, n|
+        if x == j then termShift(j, s) else [:Var, x, n] end
+      }
+    end
+
+    def termShift(d, t)
+      termShiftAbove(d, 0, t)
+    end
+    def termShiftAbove(d, c, t)
+      tmmap(c, t){|c, x, n|
+        if x >= c then [:Var, x+d, n+d] else [:Var, x, n+d] end
+      }
+    end
+    def tmmap(c, t, &block)
+      walk = ->(c, t){
+        match(t) {
+          with(_[:Var, x, n]){ block.call(c, x, n) }
+          with(_[:Let, x, t1, t2]){ [:Let, x, walk.(c, t1), walk.(c+1, t2)] }
+          with(_[:True]){ t }
+          with(_[:False]){ t }
+          with(_[:If, t1, t2, t3]){ [:If, walk.(c, t1), walk.(c, t2), walk.(c, t3)] }
+          with(_[:Zero]){ t }
+          with(_[:Succ, t1]){ [:Succ, walk.(c, t1)] }
+          with(_[:Pred, t1]){ [:Pred, walk.(c, t1)] }
+          with(_[:IsZero, t1]){ [:IsZero, walk.(c, t1)] }
+          with(_[:Abs, x, tyx, t2]){ [:Abs, x, tyx, walk.(c+1, t2)] }
+          with(_[:App, t1, t2]){ [:App, walk.(c, t1), walk.(c, t2)] }
+          with(_){ raise "tmmap: no match: #{t.inspect}" }
+        }
+      }
+      walk.(c, t)
+    end
 
     def unify(fi, msg, constr)
       u = ->(constr) {
