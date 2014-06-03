@@ -32,4 +32,9 @@ How to run
 
     $ gem i bundler
     $ bundle install
+
     $ ./arith/main.rb
+
+    $ cd ./fullrecon
+    $ gem i rspec
+    $ rspec spec_tapl.rb
