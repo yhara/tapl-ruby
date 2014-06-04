@@ -24,23 +24,37 @@ module Tapl
       def initialize(id)
         @id = id
       end
+      attr_accessor :id
       def ==(other)
         other.is_a?(TyId) && other.id == self.id
       end
-      attr_accessor :id
+      def inspect
+        "#{@id}"
+      end
     end
     class TyArr < Base
       def initialize(t1, t2)
         @t1, @t2 = t1, t2
       end
+      attr_accessor :t1, :t2
       def ==(other)
         other.is_a?(TyArr) && other.t1 == self.t1 && other.t2 == self.t2
       end
-      attr_accessor :t1, :t2
+      def inspect
+        "#<#{@t1.inspect} -> #{@t2.inspect}>"
+      end
     end
-    class TyBool < Base; end
+    class TyBool < Base
+      def inspect
+        "BOOL"
+      end
+    end
     TY_BOOL = TyBool.new
-    class TyNat < Base; end
+    class TyNat < Base
+      def inspect
+        "NAT"
+      end
+    end
     TY_NAT = TyNat.new
   end
 
@@ -110,15 +124,15 @@ module Tapl
         }
         with(_[:Succ, t1]) {
           ty1, constr1 = recon(ctx, t1) 
-          [TY_NAT, [ty1, TY_NAT]+constr1]
+          [TY_NAT, [[ty1, TY_NAT]]+constr1]
         }
         with(_[:Pred, t1]) {
           ty1, constr1 = recon(ctx, t1) 
-          [TY_NAT, [ty1, TY_NAT]+constr1]
+          [TY_NAT, [[ty1, TY_NAT]]+constr1]
         }
         with(_[:IsZero, t1]) {
           ty1, constr1 = recon(ctx, t1) 
-          [TY_NAT, [ty1, TY_NAT]+constr1]
+          [TY_NAT, [[ty1, TY_NAT]]+constr1]
         }
         with(_[:True]) {
           [TY_BOOL, []]
@@ -133,7 +147,7 @@ module Tapl
           newconstr = [[ty1, TY_BOOL], [ty2, ty3]]
           [ty3, newconstr + constr1 + constr2 + constr3]
         }
-        with(_) { raise "no match" }
+        with(_) { raise "no match: #{t.inspect}" }
       }
     end
 
@@ -225,7 +239,7 @@ module Tapl
             u.( [[fun1.t1, fun2.t1], [fun1.t2, fun2.t2], *rest] )
           }
           with(_) {
-            raise "Unsolvable constraints"
+            raise "Unsolvable constraints: #{constr.inspect}"
           }
         }
       }
@@ -255,8 +269,8 @@ module Tapl
     def subst_ty(name, type, substee_type)
       match(substee_type) {
         with(TyArr) { 
-          TyArr.new(subst_ty(substee_type.t1),
-                    subst_ty(substee_type.t2))
+          TyArr.new(subst_ty(name, type, substee_type.t1),
+                    subst_ty(name, type, substee_type.t2))
         }
         with(TyNat) { substee_type }
         with(TyBool) { substee_type }

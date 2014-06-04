@@ -95,6 +95,33 @@ module Tapl
               []]
           )
         end
+
+        #it "temp1" do
+        #  # fn(x){ let f = fn(y){ true ? y : x+1 } in 0 }
+        #  term = [:Abs, "x", nil,
+        #    [:Let, "f",
+        #      [:Abs, "y", nil, 
+        #        [:If, [:True], [:Var, 1, 99], [:Succ, [:Var, 0, 99]]]],
+        #      [:Zero]]]
+        #      #[:Var, 0, 99]]]
+        #  expect(@recon.(term)).to eq(
+        #    nil
+        #  )
+        #end
+
+        #it "temp2" do
+        #  # let id = fn(y){ y } in 0 
+        #  term = [:Let, "id",
+        #    [:Abs, "x", nil, [:Var, 0, 99]],
+        #    [:If, [:True], 
+        #      [:App, [:Var, 0, 99], [:False]],
+        #      [:App, [:Var, 0, 99], [:Zero]]]]
+        #  ty, constr = *@recon.(term)
+        #  p ty: ty, constr: constr
+        #  expect(@typer.unify(:fi, :msg, constr)).to eq(
+        #    nil
+        #  )
+        #end
       end
     end
 
